@@ -4,7 +4,6 @@ output: html_notebook
 ---
 
 
-
 leukemia data set gene expressions of human acute leukemia. 
 prediction of the type of leukemia using supervised learning
 discovery of new classes of leukemia via unsupervised learning
