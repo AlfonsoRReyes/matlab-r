@@ -1,0 +1,19 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+# A prettier display of the volcano
+x <- 10*(1:nrow(volcano))
+y <- 10*(1:ncol(volcano))
+image(x, y, volcano)
+
+contour(x, y, volcano, levels = seq(90, 200, by = 5),
+        add = TRUE, col = "peru")
+axis(1, at = seq(100, 800, by = 100))
+axis(2, at = seq(100, 600, by = 100))
+box()
+title(main = "Maunga Whau Volcano", font.main = 4)
+```
+
