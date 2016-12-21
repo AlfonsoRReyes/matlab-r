@@ -1,0 +1,57 @@
+---
+title: "projection. Example 2.1"
+output: html_notebook
+---
+
+We will be projecting our data set onto a line that is $\theta$ radians from the horizontal.
+
+$\theta$ in the example is $\frac{\pi}{3}$.
+
+The projection matrix is given by:
+
+$p = \begin{pmatrix}
+(cos \theta)^2 & cos \theta sin \theta \\ 
+ cos \theta sin \theta & (sin \theta)^2
+ \end{pmatrix}$
+
+```{r}
+# enter data as rows
+X = matrix(c(4, 3, -4, 5), nrow=2, byrow = TRUE)
+
+# get theta
+theta <- pi /3
+
+# obtain the projection matrix
+c2 <- cos(theta)^2
+cs <- cos(theta)*sin(theta)
+s2 <- sin(theta)^2
+P <- array(c(c2, cs, cs, s2), dim = c(2,2))
+P
+```
+
+```{r, fig.asp=0.8}
+source("../matlab.R")
+
+Xp <- X %*% P
+
+plot(Xp[, 1], Xp[, 2], 
+     xlim = c(-8, 8),
+     ylim = c(-8, 8)
+     )
+
+Px <- matrix(c(1, 0), nrow=2)
+Xpx <- X %*% Px
+
+projectionMatrixLine(P, col = 'green')   # draw the projection line at angle
+
+abline(h=0, v=0)          # lines at (0, 0)
+points(Xpx[1], 0, pch=8)  # plot point projections
+points(Xpx[2], 0, pch=8)
+```
+
+We can see now the ortogonal projections on the x-axis.
+
+```{r}
+X
+```
+
