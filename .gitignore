@@ -23,6 +23,8 @@ vignettes/*.pdf
 *.utf8.md
 *.knit.md
 .Rproj.user
-leukemia.nb.html
-volcano-contour.nb.html
-software-inspection.nb.html
+*.nb.html
+*.html
+*.png
+
+
