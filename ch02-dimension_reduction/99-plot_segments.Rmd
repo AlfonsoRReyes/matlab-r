@@ -1,9 +1,16 @@
 ---
 title: "R Notebook"
 output:
-  pdf_document: default
+  html_document: default
   html_notebook: default
+  pdf_document: default
 ---
+
+```{r}
+plotSegment <- function(P1, P2, ...) {
+  segments(P1[1], P1[2], P2[1], P2[2], ...)
+}
+```
 
 ```{r}
 A <- c(2,4) 
@@ -30,11 +37,7 @@ plotSegment(A, B, col = 'green')
 points(A, pch = 20, alpha=0.5, col = "orange")
 ```
 
-```{r}
-plotSegment <- function(P1, P2, ...) {
-  segments(P1[1], P1[2], P2[1], P2[2], ...)
-}
-```
+
 
 
 ## How to drop a perpendicular line from each point in a scatterplot to an (Eigen) vector?

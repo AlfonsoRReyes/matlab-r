@@ -1,10 +1,14 @@
 ---
 title: "Dimension reduction. Projection. Example 2.1"
 output:
-  pdf_document: default
-  html_notebook: default
   html_document: default
+  html_notebook: default
+  pdf_document: default
 ---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
 
 # Objective
 In this example we want to show the dimension reduction of the data. We start with a 2-D data set and will reduce it to a 1-D data set by projecting the x,y coordinates of the data set over the x-axis.

@@ -1,7 +1,13 @@
 ---
 title: "plot vectors"
-output: html_notebook
+output:
+  html_document: default
+  html_notebook: default
 ---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
 
 ```{r}
 plot(NA, xlim=c(0,5), ylim=c(0,5), xlab="X", ylab="Y")
