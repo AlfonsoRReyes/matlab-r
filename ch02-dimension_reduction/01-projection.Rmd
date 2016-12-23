@@ -1,7 +1,13 @@
 ---
 title: "projection. Example 2.1"
-output: html_notebook
+output:
+  html_document: default
+  html_notebook: default
 ---
+
+# Objective
+In this example we want to show the dimension reduction of the data. We start with a 2-D data set and will reduce it to a 1-D data set by projecting the x,y coordinates of the data set over the x-axis.
+
 
 We will be projecting our data set onto a line that is $\theta$ radians from the horizontal.
 
