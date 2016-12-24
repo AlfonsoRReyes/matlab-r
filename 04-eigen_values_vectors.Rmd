@@ -3,6 +3,10 @@ title: "Eigen values and eigen vectors"
 output: html_notebook
 ---
 
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
 
 ```{r}
 r2 <- matrix(c(1, .6, .6, 1), 2, 2)
