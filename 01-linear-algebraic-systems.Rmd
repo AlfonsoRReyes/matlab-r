@@ -3,6 +3,9 @@ title: "01-linear-algebraic-systems"
 output: html_notebook
 ---
 
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
 
 ## Concepts
 

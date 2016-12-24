@@ -1,0 +1,298 @@
+---
+title: "Algebra in R"
+output:
+  html_notebook: default
+  html_document: default
+---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
+
+https://www.math.uh.edu/~jmorgan/Math6397/day13/LinearAlgebraR-Handout.pdf
+
+
+All vectors are column vectors unless specified.
+
+```{r}
+a <- matrix(c(1, 3, 2), ncol=1)
+a
+```
+
+a = $\begin{pmatrix}
+ 2  \\ 
+ 1  \\
+ 3
+ \end{pmatrix}$
+ 
+ 
+### Transpose of vectors
+
+```{r}
+a
+```
+
+
+Transpose of `a`
+```{r}
+t(a)
+```
+
+### Sum of vectors
+
+```{r}
+b <- c(2, 8, 9)
+```
+
+```{r}
+a + b
+```
+
+> Only vectors of the same dimension can be added
+
+
+
+### Inner product of vectors
+It is a number not a vector.
+```{r}
+sum(a * b)
+```
+
+### Length of a vector (norm)
+
+$\left \| a \right \| = \sqrt {a.a} = \sqrt \sum_{i=1}^{n} a_i^2$
+
+```{r}
+sqrt(sum(a * a))
+```
+
+### The -vector and 1-vector
+
+```{r}
+rep(0, 5)
+```
+
+```{r}
+rep(1, 5)
+```
+
+### Orthogonal (perpedicular) vectors
+Two vectors are perpendicular is the inner product is zero.
+```{r}
+
+v1 <- c(1, 1)
+v2 <- c(-1, 1)
+
+sum(v1 * v2)
+```
+
+## Matrices
+
+### Matrices
+```{r}
+A <- matrix(c(1, 3, 2, 2, 8, 9), ncol = 3)
+A
+```
+
+Note that the numbers 1, 3, 2, 2, 8, 9 are read into the matrix column–by–
+column. To get the numbers read in row–by–row do
+
+```{r}
+A2 <- matrix(c(1, 3, 2, 2, 8, 9), ncol = 3, byrow = T)
+A2
+```
+
+### Multiplying a matrix by a number
+
+```{r}
+A <- matrix(c(1, 3, 2, 2, 8, 9), ncol = 2)
+7 * A
+```
+
+### Transpose of a matrix
+```{r}
+A
+```
+```{r}
+t(A)
+```
+
+### Sum of matrices
+
+```{r}
+A <- matrix(c(1, 3, 2, 2, 8, 9), ncol = 2)
+B <- matrix(c(5, 8, 3, 4, 2, 7), ncol = 2)
+
+A+B
+```
+
+### Multiplication of a matrix and a vector
+
+```{r}
+a <- c(5, 8)
+
+A %*% a
+```
+
+Note the difference to:
+
+```{r}
+A * a
+```
+
+### Multiplication of matrices
+
+```{r}
+C <- matrix(c(5, 4, 8, 2), ncol =2, byrow = T)
+C
+```
+
+```{r}
+A %*% C
+```
+
+> Note that the product AB can only be formed if the number of rows in B and
+the number of columns in A are the same. In that case, A and B are said to
+be conforme.
+In general AB and BA are not identical.
+
+
+##n Some special matrices
+- An n × n matrix is a square matrix
+
+– A matrix A is symmetric if A = A>.
+
+– A matrix with 0 on all entries is the 0–matrix and is often written simply
+as 0.
+
+– A matrix consisting of 1s in all entries is of written J.
+
+– A square matrix with 0 on all off–diagonal entries and elements d1, d2, . . . , dn
+on the diagonal a diagonal matrix and is often written diag{d1, d2, . . . , dn}
+
+– A diagonal matrix with 1s on the diagonal is called the identity matrix
+and is denoted I. The identity matrix satisfies that IA = AI = A.
+
+### 0-matrix
+```{r}
+matrix(0, nrow = 2, ncol = 3)
+```
+
+### 1-matrix
+```{r}
+matrix(1, nrow = 2, ncol = 3)
+```
+
+### Diagonal matrix
+```{r}
+diag(c(1, 2, 3))
+```
+
+### Identity matrix
+```{r}
+diag(1, 3)
+```
+
+### Applying `diag` to a matrix
+
+```{r}
+diag(diag(c(1,2,3)))
+```
+
+```{r}
+diag(A)
+```
+
+## Inverse of matrices
+
+```{r}
+A <- matrix(c(1, 2, 3,4), ncol =2)
+B <- matrix(c(-2, 1, 1.5, -0.5), ncol =2)
+A
+B
+```
+ 
+The identity matrix should be the result of A %*% B :
+```{r}
+A %*% B
+```
+
+### Find the inverse of a matrix
+
+```{r}
+B <- solve(A)
+B
+```
+
+### Solving systems of linear erquations
+
+
+For these two equations:
+
+$x_1 + 3x_2 = 7 \\
+2x_1 + 4x_2 = 10$
+
+They can be written as:
+
+$\begin{pmatrix}
+ 1 & 3 \\
+ 2 & 4
+\end{pmatrix}
+\begin{pmatrix}
+  x_{1} \\
+  x_{2} 
+ \end{pmatrix}=
+\begin{pmatrix}
+  7 \\
+  10  
+\end{pmatrix}$
+
+or:
+
+$\mathbf{A}x = b$
+
+
+Which we can express as:
+
+$x = A^{-1} b$
+
+since we know that:
+
+$A^{-1} A = I$ and $Ix = x$
+
+then:
+
+$A^{-1} \mathbf{A} x = x$
+
+which finally yields:
+
+$A^{-1} b = x$
+
+### Example of equation:
+
+```{r}
+A <- matrix(c(1, 2, 3, 4), ncol=2)
+b <- matrix(c(7, 10), ncol=1)
+```
+
+```{r}
+Ai <- solve(A)
+Ai %*% b
+```
+
+The solution then is:
+
+$\begin{pmatrix}
+  x_{1} \\
+  x_{2} 
+ \end{pmatrix} = 
+\begin{pmatrix}
+  1 \\
+  2
+ \end{pmatrix}$
+ 
+ 
+ 
+ 
+
