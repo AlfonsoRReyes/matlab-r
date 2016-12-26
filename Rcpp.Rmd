@@ -1,0 +1,327 @@
+---
+title: "Using 'Rcpp' to integrate R and C++"
+author: "Guilherme Ludwig"
+date: "10/09/2014"
+output: html_document
+---
+
+```{r knitr_options, echo=FALSE}
+library(knitr)
+opts_chunk$set(fig.align='center', fig.path='Rcpp/', warning=FALSE, message=FALSE, echo=TRUE)
+```
+
+Source of this document available [here](Rcpp.Rmd).
+
+```{r}
+library(Rcpp)
+```
+
+
+First I am going to run an example from Dirk Eddelbuettel's *Seamless R and C++ Integration with Rcpp* (2013); he wrote code to calculate the n-th term of the Fibonacci sequence, a recursive function given by $$F(0) = 0, F(1) = 1, F(n) = F(n-1) + F(n-2)$$
+
+```{r}
+fibR <- function(n){
+  ## I commented this out because I am not handling errors in the C++ code,
+  ## so the code is comparable
+  # if (n < 0) {
+  #  stop("Argument n must be non-negative integer.\n")
+  # } else 
+  if (n == 0) {
+    return(0)
+  } else if (n == 1) {
+    return(1)
+  } else {
+    Recall(n-1) + Recall(n-2)
+  }
+}
+n <- 10:26
+time.to.calculate <- sapply(n, function(x) system.time(fibR(x))[3])
+plot(n, time.to.calculate, xlab="n", ylab="seconds", 
+     main="Fibonacci F calculation time", type="b")
+```
+
+This is the C++ code to calculate the same function (I wrote the whole program, but we only need the `fibCpp()` chunk):
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <cstdio>
+
+// This is the function we will later import to R
+int fibCpp(const int n) {
+  if(n == 0){
+    return(0);
+  } else if(n == 1){
+    return(1);
+  } else {
+    return(fibCpp(n-1) + fibCpp(n-2));
+  }
+}
+
+/* Main function, required for C++
+Just a small script that asks for user input on n
+and evaluates/prints it.
+*/ 
+int main(void){
+  int n; // Variables have to be initialized
+  int z;
+  printf("Write an integer greater or equal than 0:\n");
+  scanf("%d", &n); // Assigns an user inputted digit to n
+                   // Here %d is a formatted digit
+                   // abd &n is the address in the memory for n
+  z = fibCpp(n); // Call the function we created previously
+  printf("%d\n", z); 
+}
+```
+
+This code compiles (in Unix shell) by running `g++ filename.cpp -o progname`, and you can execute it by running `./progname`. `filename` and `progname` can be anything, really. But we don't need that for calling C++ code from R. I named mine `fibMain.cpp` and it can be downloaded [here](fibMain.cpp). For just the `fibCpp()` function, it can be downloaded [here](fib.cpp).
+
+Regarding C++ syntax: [this website](http://www.physics.drexel.edu/courses/Comp_Phys/General/C_basics/c_tutorial.html) has a cool introduction to C (not C++). I'm still on the lookout for a nice, 101 level page for C++ (I'm sure many exist). Eddebuettel's book has a cool Appendix on it.
+
+## Using basic Rcpp
+
+**Skip this section and go check "Using Attributes" if you want to start using C++ code immediately. I've only written this because I was coding this markdown file as I read the book, and this was presented first. It is interesting but not necessary anymore**
+
+The C++ code needs an wrapper function. From the [Writing R Extensions](http://cran.r-project.org/doc/manuals/R-exts.html#Interface-functions-_002eCall-and-_002eExternal) manual, and Eddenbuettel's book, one suitable wrapper is
+
+```{r eval=FALSE, engine='Rcpp'}
+extern "C" SEXP fibWrapper(SEXP ns) {
+  int n = Rcpp::as<int>(ns);
+  int fib = fibCpp(n);
+  return(Rcpp::wrap(fib));
+}
+```
+
+So what's going there is that the wrapper function is being declared to return a pointer to an S expression (`SEXP`) and taking an `SEXP` argument `ns`. Rcpp has a function `as<int>` that behaves like `as.integer()` from R, but turns the `ns` object into an integer variable in C++. It evaluates the `fibCpp()` function and `wraps()` the returned integer variable into an object that R understands. Most wrappers should be somewhat like this.
+
+Now the following steps require a compiler; you can guess that I'm using `g++` but `gcc` is also used in the process. I don't know much about compilers beyond basic usage. If you're coding in Linux, you're good (make sure you have the developer tools by running `sudo apt-get install r-base-dev`). If you're on a Mac or, even worse, Windows, apparently the [Rtools](http://cran.at.r-project.org/bin/windows/Rtools/) program has both `g++` and `gcc` available. ~~I did not test it~~, but I used Rtools when teaching [how to create a package](http://pages.stat.wisc.edu/~gvludwig/327-5/package.html) in my Spring '14 class at UW. Update: tested it, it works!
+
+First, I include the `fibWrapper()` function in a different file along with the `fibCpp()` C++ function. This new file is not necessary (the wrapper can be in [fib.cpp](fib.cpp)), but I did it for illustration. I also need to explicitly call `#include <Rcpp.h>`, `using namespace Rcpp;` at the beginning of the file. Everything is in [fibWrap.cpp](fibWrap.cpp).. So, now I'd type in the bash prompt
+
+```{r eval=FALSE}
+PKG_CXXFLAGS=`Rscript -e 'Rcpp:::CxxFlags()'` \
+PKG_LIBS=`Rscript -e 'Rcpp:::LdFlags()'`  \
+R CMD SHLIB fibWrap.cpp
+```
+
+and then, after starting up R
+
+```{r}
+library(Rcpp)
+dyn.load("fibWrap.so")
+.Call("fibWrapper", 5) # Evaluates fibWrapper() at 5
+.Call("fibWrapper", 9) 
+.Call("fibWrapper", 10) 
+```
+
+This approach does not work on Windows as is (`.so` is a Linux shared library, you need to create a `.dll` in Windows), but see the next session "Using Attributes". Also these two steps, and the wrapper function, are quite complicated. In fact, Dirk Eddelbuettel is discouraging it. There's a much easier method available, which uses the `Attributes` in the `Rcpp` package.
+
+## Using Attributes
+
+Open my [fibBest.cpp](fibBest.cpp) version; it doesn't have an wrapper anymore, but it includes the `// [[Rcpp::export]]` just before the actual function. If you skipped the last section, go back for a second and read the paragraph about requiring a compiler (both `g++` and `gcc`, install `Rtools` if you're in Windows; might not need if using Rstudio). Anyway, when using Attributes I just need to boot R and run
+
+```{r}
+library(Rcpp)
+sourceCpp("fibBest.cpp")
+```
+
+and that makes the function `fibCpp()` available in R!
+
+## Comparing results
+
+This is magic, and speaks for itself. I augmented the values called to show that the function behavior is the same (in terms of complexity) but C++ just does the computation much faster.
+
+```{r}
+n2 <- 10:(26+12) # Some extra 12 values
+time.to.calculateCpp <- sapply(n2, function(x) system.time(fibCpp(x))[3])
+
+plot(n2, c(time.to.calculate, rep(NA,12)), xlab="n", ylab="seconds", 
+     main="Fibonacci F calculation time", type="b")
+lines(n2, time.to.calculateCpp, type="b", col="Red")
+legend("topleft", inset=0.01, legend=c("R","C++"), pch=1, col=1:2)
+```
+
+## NumericVector types and other Rcpp tools
+
+It's somewhat complicated (for someone with a predominantly R-background) to work with vectors and memory allocation in C/C++. I never really understood how to use `malloc()` in C and, while C++ might have some better pointer-based options, I don't know them because I don't know much C++ to begin with. So this example uses the `NumericVector` type from Rcpp to reproduce a function similar to R's `dnorm()`, with only some basic arguments (namely, `x`, `mean` and `sd` in R).
+
+```{r eval=FALSE}
+#include <Rcpp.h>
+#include <cmath>        // std::exp(double)
+#include <valarray>     // std::valarray, std::exp(valarray)
+
+using namespace Rcpp;
+
+// [[Rcpp::export]]
+NumericVector dnormCpp(NumericVector x, double mu, double sigma) {
+   // const double MYPI = 3.141592;
+   // I think PI is available in cmath
+   int n = x.size();
+   NumericVector d(n);
+   NumericVector ret(n);
+   for(int i = 0; i < n; i++){
+     d[i] = (x[i] - mu)/sigma;
+     d[i] *= d[i];
+     ret[i] = exp(-0.5*d[i])/(sqrt(2*PI)*sigma);
+   }
+   return(ret);
+}
+```
+
+Download the code [here](dnormCpp.cpp). It's not much faster than the regular R version (which, to be fair, includes a lot of error checking and is probably faster at its core anyway, since it's written in C), but this example is a good start for functions that involve the Normal density and some loops.
+
+Note also that I'm not calculating values at the tails of the density or anything, which require smarter algorithms for better accuracy, and should be available in `dnorm()` already.
+
+```{r}
+library(Rcpp)
+sourceCpp("dnormCpp.cpp")
+
+all.equal(dnorm(1:10, 5, 1), dnormCpp(1:10, 5,1))
+
+n <- 20
+timeCpp <- timeR <- numeric(n)
+for(k in 1:n){
+  timeCpp[k] <- system.time({dnormCpp(1:(10000*n), 10000*n/2, 10000*n)})[3]
+  timeR[k] <- system.time({dnorm(1:(10000*n), 10000*n/2, 10000*n)})[3]
+}
+
+plot(10000*(1:n), timeR, xlab="n", ylab="seconds", ylim=c(0, max(timeR)),
+     main="dnorm() v. dnormCpp() times", type="b")
+lines(10000*(1:n), timeCpp, type="b", col="Green")
+legend("bottomleft", inset=0.01, legend=c("R","C++"), pch=1, col=c("Black", "Green"))
+```
+
+## More complicated example using RcppEigen
+
+Basically I am going to implement a fast way to calculate
+
+\[
+\hat{\boldsymbol\beta} = \left( \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{X} \right)^{-1} \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{y}
+\]
+
+using the `RcppEigen` package. Eigen is a super fast linear algebra library for C++, that Jared Huling told me about. There's an useful [quick reference](http://eigen.tuxfamily.org/dox/AsciiQuickReference.txt) on Eigen, as well as a in-depth [tutorial](http://eigen.tuxfamily.org/dox/group__TutorialMatrixClass.html). The quick reference is very conveniently linking commands to MATLAB scripts. :)
+
+First, we need [Eigen](http://eigen.tuxfamily.org/index.php?title=Main_Page) on the system. It can be downloaded [here](http://eigen.tuxfamily.org/index.php?title=Main_Page#Download). I think it is possible to `sudo apt-get install libeigen3-dev` instead, but it didn't work for me. Instead I ran the following:
+
+```{r eval=FALSE, engine='Rcpp'}
+cd ~/Downloads
+tar xzf eigen-eigen-1306d75b4a21.tar.gz
+cd eigen-eigen-1306d75b4a21
+sudo cp -r Eigen /usr/include/
+```
+
+Here's my implementation of the calculation, using Rcpp-Eigen. I saved the source in [xtSx.cpp](xtSx.cpp):
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+#include <Eigen/Dense>
+#include <Eigen/Cholesky>
+
+using namespace Eigen;
+using namespace Rcpp;
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+MatrixXd xtSx(const MatrixXd& X, const MatrixXd& Sigma, const VectorXd& Y) {
+  MatrixXd SX = Sigma.llt().solve(X); // A\b by Cholesky's decomposition
+  MatrixXd XSX = (X.adjoint())*SX;    // ldlt() for p.s.d. matrices
+  VectorXd XSY = (SX.adjoint())*Y;    // llt() for p.d. matrices
+  VectorXd beta = XSX.ldlt().solve(XSY);
+  return (beta);
+}
+```
+
+A test case to show the results are the same:
+
+```{r}
+require(RcppEigen)
+
+sourceCpp("xtSx.cpp")
+S <- matrix(c(1,.5,.5,1),ncol=2)
+Y <- c(3,2)
+X <- matrix(c(1,0,1,1), ncol=2)
+solve(t(X)%*%solve(S)%*%X)%*%t(X)%*%solve(S)%*%Y
+xtSx(X,S,Y)
+```
+
+Keeping track of time, using two versions of R implementation (the straightforward, above, and a clever one using `crossprod`)
+
+```{r}
+xtSxR <- function(X, S, Y){
+  return(solve(t(X)%*%solve(S)%*%X)%*%t(X)%*%solve(S)%*%Y)
+}
+xtSxRclever <- function(X, S, Y){
+  return(solve(crossprod(X, solve(S, X)), crossprod(X, solve(S, Y))))
+}
+```
+
+And a simulation for a large value of $p = 10$, $n > p$
+
+```{r}
+p <- 10
+n <- seq(200, 500, by=20)
+timeCpp <- numeric(length(n))
+timeR <- numeric(length(n))
+timeRclever <- numeric(length(n))
+k <- 0
+set.seed(1)
+for(i in n){
+  k <- k + 1
+  Y <- rnorm(i)
+  X <- matrix(rnorm(i*p), ncol=p)
+  S <- matrix(0, i, i)
+  for(j in 1:i){
+    S[j,] = 0.5^abs(j - 1:i)
+  }
+  timeCpp[k] <- system.time(xtSx(X,S,Y))[3]
+  timeR[k] <- system.time(xtSxR(X,S,Y))[3]
+  timeRclever[k] <- system.time(xtSxRclever(X,S,Y))[3]
+}
+```
+
+This graph shows how much better the C++ version is:
+
+```{r}
+plot(n, timeR, xlab="n", ylab="seconds", ylim=c(0, max(timeR)),
+     main="Generalized LS calculation time", type="b")
+lines(n, timeRclever, type="b", col="Red")
+lines(n, timeCpp, type="b", col="Blue")
+legend("topleft", inset=0.01, legend=c("R","Rclever","C++"), pch=1, col=c("Black", "Red", "Blue"))
+```
+
+Relative difference:
+
+```{r}
+all.equal(as.numeric(xtSx(X,S,Y)), 
+          as.numeric(xtSxR(X,S,Y)), 
+          as.numeric(xtSxRclever(X,S,Y)))
+```
+
+At $p=10, n=500$, the improvement in speed is about `r round(max(timeR)/max(timeCpp))`-fold! It can be made faster, though. I am going to try modify my example inspired in the $\mathbf{X}^\prime \mathbf{X}$ example from Bates and Eddelbuettel's "Fast and Elegant Numerical Linear Algebra Using the RcppEigen Package" (<i>Journal of Statistical Software</i>, 2013) and on some suggestions that [Jared](https://github.com/jaredhuling) shared with me. Code is [here](xtSxMod.cpp).
+
+```{r}
+sourceCpp("xtSxMod.cpp")
+
+timeCppFast <- numeric(length(n))
+k <- 0
+set.seed(1)
+for(i in n){
+  k <- k + 1
+  Y <- rnorm(i)
+  X <- matrix(rnorm(i*p), ncol=p)
+  S <- matrix(0, i, i)
+  for(j in 1:i){
+    S[j,] = 0.5^abs(j - 1:i)
+  }
+  timeCppFast[k] <- system.time(xtSxMod(X,S,Y))[3]
+}
+```
+
+Now, the graph shows that this modified version is not faster. I think that it's because I'm calling the solver method three times, as opposed to two before, so the `selfAdjointView` method is not really helping. I should learn how to profile C++ code.
+
+```{r}
+plot(n, timeR, xlab="n", ylab="seconds", ylim=c(0, max(timeR)),
+     main="Generalized LS calculation time", type="b")
+lines(n, timeRclever, type="b", col="Red")
+lines(n, timeCpp, type="b", col="Blue")
+lines(n, timeCppFast, type="b", col="Orange")
+legend("topleft", inset=0.01, legend=c("R","R Fast","C++","C++ Fast"), pch=1, col=c("Black", "Red", "Blue", "Orange"))
+```
