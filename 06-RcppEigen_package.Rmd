@@ -1,0 +1,296 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+## Version
+
+```{r}
+library(RcppEigen)
+
+pkgVersion <- packageDescription("RcppEigen")$Version
+pkgDate <- packageDescription("RcppEigen")$Date
+
+pkgVersion
+pkgDate
+```
+
+
+```{r}
+
+RcppSamp <- function(X) {
+  stopifnot(is.numeric(X <- as.matrix(X)),
+            (nc <- ncol(X)) > 1L,
+            all(X >= 0))
+  .Call(CppSamp, X)
+}
+
+```
+
+
+## Max over columns
+source: http://stackoverflow.com/questions/27490659/rcppeigen-going-from-inline-to-a-cpp-function-in-a-package-and-map
+
+
+
+## Using RcppEigen to find the max over columns
+
+### Long version
+Assigns code to R variable `maxOverColCpp` Uses mixed C++.
+```{r}
+library(Rcpp); 
+library(inline); 
+library(RcppEigen);
+
+maxOverColCpp <- '
+    using Eigen::Map;
+    using Eigen::MatrixXd;
+
+   // Map the double matrix AA from R
+   const Map<MatrixXd> A(as<Map<MatrixXd> >(AA));
+
+   // evaluate and columnwise maximum entry of A
+   const MatrixXd Amax(A.colwise().maxCoeff());
+   return wrap(Amax);
+'
+
+rcppeigen_max_over_columns <- cxxfunction(signature(AA = "matrix"), maxOverColCpp, plugin = "RcppEigen")
+
+```
+
+```{r}
+M <- matrix(c(1,2,3,4,5,6,7,8,9), ncol=3)
+M
+```
+```{r}
+rcppeigen_max_over_columns(M)
+```
+
+### Max over columns: short version.
+Uses C++ code.
+```{r eval=FALSE, engine='Rcpp'}
+// we only include RcppEigen.h which pulls Rcpp.h in for us
+#include <RcppEigen.h>
+
+using namespace Eigen;
+
+// via the depends attribute we tell Rcpp to create hooks for
+// RcppEigen so that the build process will know what to do
+//
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+MatrixXd  rcppeigen_max_over_columns3(const MatrixXd  & A) {
+    MatrixXd Amax = A.colwise().maxCoeff();
+    return Amax;
+}
+```
+
+```{r}
+require(RcppEigen)
+
+rcppeigen_max_over_columns3(M)
+```
+
+## Transpose
+Uses R code assigned to variable `transCpp` and a call to `cxxfunction`.
+the transpose() method for the `Eigen::MatrixXi` class is used to return the transpose of the supplied matrix. The R matrix in the SEXP AA is first mapped to an Eigen::MatrixXi object, and then the matrix At is constructed from its transpose and returned to R.
+
+```{r}
+library(Rcpp); 
+library(inline); 
+library(RcppEigen);
+
+transCpp <- '
+    using Eigen::Map;
+    using Eigen::MatrixXi;
+    
+// Map the integer matrix AA from R
+    const Map<MatrixXi> A (as<Map<MatrixXi> >(AA));
+    
+// evaluate and return the transpose of A
+    const MatrixXi
+    At(A.transpose());
+    return wrap(At);
+'
+```
+
+The R snippet below compiles and links the C++ code segment. The actual work is done
+by the function `cxxfunction` from the inline package which compiles, links and loads code
+written in C++ and supplied as a character variable. This frees the user from having to
+know about compiler and linker details and options, which makes “exploratory programming”
+much easier. Here the program piece to be compiled is stored as a character variable named
+`transCpp`, and `cxxfunction` creates an executable function which is assigned to `ftrans`.
+This new function is used on the matrix $A$ shown above, and one can check that it works as
+intended by comparing the output to an explicit transpose of the matrix argument.
+
+```{r}
+ftrans <- cxxfunction(signature(AA = "matrix"), transCpp, plugin = "RcppEigen")
+```
+
+
+```{r}
+(A <- matrix(1:6, ncol = 2))
+```
+
+```{r}
+str(A)
+```
+
+```{r}
+(At <- ftrans(A))
+```
+
+## Transpose using a R chunk
+Converting the inline C++ function to a full C++ function
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+
+using namespace Eigen;
+using namespace Rcpp;
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+MatrixXi transCpp(const MatrixXi& A) {
+  MatrixXi alpha = A.transpose();
+  return alpha;
+}
+
+```
+
+
+```{r}
+require(RcppEigen)
+
+B <- matrix(1:6, ncol = 2)
+B
+transCpp(B)
+```
+
+```{r}
+M <- matrix(c(1,2,3,4,5,6,7,8,9), ncol=3)
+M
+transCpp(M)
+```
+
+
+
+## XtSx
+\[
+\hat{\boldsymbol\beta} = \left( \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{X} \right)^{-1} \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{y}
+\]
+
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+#include <Eigen/Dense>
+#include <Eigen/Cholesky>
+
+using namespace Eigen;     // if we add the namespace, then the class is not needed
+using namespace Rcpp;
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+MatrixXd xtSxx(const MatrixXd& X, const MatrixXd& Sigma, const VectorXd& Y) {
+  MatrixXd SX = Sigma.llt().solve(X); // A\b by Cholesky's decomposition
+  MatrixXd XSX = (X.adjoint())*SX;    // ldlt() for p.s.d. matrices
+  VectorXd XSY = (SX.adjoint())*Y;    // llt() for p.d. matrices
+  VectorXd beta = XSX.ldlt().solve(XSY);
+  return (beta);
+}
+```
+
+A test case to show the results are the same:
+
+```{r}
+require(RcppEigen)
+
+S <- matrix(c(1,.5,.5,1),ncol=2)
+Y <- c(3,2)
+X <- matrix(c(1,0,1,1), ncol=2)
+
+solve(t(X)%*%solve(S)%*%X)%*%t(X)%*%solve(S)%*%Y
+xtSxx(X,S,Y)
+```
+
+
+
+
+
+## Matrix product and cross-product
+from the paper `Figure 2` example.
+
+As mentioned in Section 2.2, the '*' operator is overloaded as matrix multiplication for the various matrix and vector classes in $\textbf{Eigen}$.  The C++ code in Figure 2 produces a list containing both the product and cross-product (in the sense of the R function call `crossproduct(A, B)` evaluating $A \top B$) of its two arguments
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+
+using namespace Eigen;
+using namespace Rcpp;
+
+typedef MatrixXi MapMati;         // declare a type MapMati
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+// prodCpp function is of type List
+List prodCpp(const MapMati& B, const MapMati& C) {
+  return List::create(Named("B %*% C")        = B * C,
+                      Named("crossprod(B, C") = B.adjoint() * C);
+}
+
+```
+
+```{r}
+B <- matrix(1:4, ncol = 2)
+C <- matrix(6:1, nrow = 2)
+
+str(fp <- prodCpp(B, C))
+
+```
+> Note  that  the create class  method  for Rcpp::List implicitly  applies Rcpp::wrap
+to  its arguments.
+
+
+## Crossproduct of a single matrix
+As shown in the last example, the R function `crossprod` calculates the product of the transpose of its  first argument with its second argument. The single argument form, `crossprod(X)`, evaluates $X^\top X$ .  One could, of course, calculate this product as 
+
+    t(X) %*% X
+    
+but `crossprod(X)` is roughly twice as fast because the result is known to be symmetric and only one triangle needs to be calculated. The function `tcrossprod` evaluates crossprod(t(X)) without actually forming the transpose.
+
+To express these calculations in Eigen, a SelfAdjointView -which is a dense matrix of which only one triangle is used,  the other triangle being inferred from the symmetry|is created. (The characterization "self-adjoint" is equivalent to symmetric for non-complex matrices).
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+
+using namespace Eigen;
+using namespace Rcpp;
+
+using Eigen::Lower;
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+
+List crossprodCpp(const MatrixXi& A) {
+  const int m(A.rows()), n(A.cols());
+  
+  MatrixXi aj = MatrixXi(n,n).setZero().selfadjointView<Lower>().rankUpdate(A.adjoint());
+  
+  MatrixXi ru = MatrixXi(m, m).setZero().selfadjointView<Lower>().rankUpdate(A);
+  
+  return List::create(Named("crosprod(A)")  = aj,
+                      Named("tcrossprod(A") = ru);
+}
+
+```
+
+The Eigen class name is __SelfaAjointView__. The method for general matrices that produces such  a  view  is  called `selfadjointView`. Both  require  specification  of  either  the __Lower__ or __Upper__ triangle. For  triangular  matrices  the  class  is __TriangularView__ and  the  method  is `triangularView`. The  triangle  can  be  specified  as _Lower, UnitLower, StrictlyLower, Upper, UnitUpper or StrictlyUpper_. For self-adjoint views the rankUpdate method adds a scalar multiple of
+$AA^\top$ to the current symmetric matrix.  The scalar multiple defaults to 1.  The code in Figure 3 produces both $A^\top A$ and $AA^\top$ from a matrix $A$.
+
+```{r}
+A <- matrix(1:6, ncol = 2)
+crossprodCpp(A)
+```
+
+
+
