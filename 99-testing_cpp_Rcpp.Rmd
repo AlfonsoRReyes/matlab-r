@@ -1,0 +1,22 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(Rcpp)
+
+myroot <- cppFunction('double myroot(double x) { return ::sqrt(x); }')
+myroot(16)
+```
+
+
+
+```{r}
+library(Rcpp)
+
+myroot2 <- rcpp(signature(xs="numeric"), 
+                  body='double x=as<double>(xs); return wrap(::sqrt(x));')
+myroot2(16)
+```
+

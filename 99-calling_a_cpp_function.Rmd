@@ -1,0 +1,17 @@
+---
+title: "Calling a C++ function"
+output: html_notebook
+---
+
+
+```{r}
+
+sourceCpp("MatrixExample.cpp")
+
+M <- matrix((1:16)^2, 4)
+class(M)
+ME <- MatrixExample(M)
+class(ME)
+ME
+```
+
