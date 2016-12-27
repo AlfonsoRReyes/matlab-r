@@ -152,8 +152,8 @@ using namespace Rcpp;
 // [[Rcpp::depends(RcppEigen)]]
 // [[Rcpp::export]]
 MatrixXi transCpp(const MatrixXi& A) {
-  MatrixXi alpha = A.transpose();
-  return alpha;
+  MatrixXi At = A.transpose();
+  return At;
 }
 
 ```
@@ -274,12 +274,11 @@ using Eigen::Lower;
 List crossprodCpp(const MatrixXi& A) {
   const int m(A.rows()), n(A.cols());
   
-  MatrixXi aj = MatrixXi(n,n).setZero().selfadjointView<Lower>().rankUpdate(A.adjoint());
+  MatrixXi AtA = MatrixXi(n,n).setZero().selfadjointView<Lower>().rankUpdate(A.adjoint());
+  MatrixXi AAt = MatrixXi(m, m).setZero().selfadjointView<Lower>().rankUpdate(A);
   
-  MatrixXi ru = MatrixXi(m, m).setZero().selfadjointView<Lower>().rankUpdate(A);
-  
-  return List::create(Named("crosprod(A)")  = aj,
-                      Named("tcrossprod(A") = ru);
+  return List::create(Named("crosprod(A)")  = AtA,
+                      Named("tcrossprod(A") = AAt);
 }
 
 ```
@@ -292,5 +291,72 @@ A <- matrix(1:6, ncol = 2)
 crossprodCpp(A)
 ```
 
+Using help from https://github.com/RcppCore/RcppEigen/blob/master/src/fastLm.cpp
 
+
+
+To some, the expressions in Figure 3 to construct  __AtA__  and  __AAt__  are compact and elegant.  To  others they are hopelessly confusing.  If you  nd yourself in the latter group, you just need  to read the expression left to right.  So, for example, we construct  __AAt__  by creating a general  integer  matrix  of  size  $m \times m$  (where  $A$  is  $m  \times n$  ),  ensuring  that  all  its  elements  are  zero,  regarding it as a self-adjoint (i.e., symmetric) matrix using the elements in the lower triangle,  then adding  $AA^\top$  to it and converting back to a general matrix form (i.e., the strict lower  triangle is copied into the strict upper triangle).
+
+
+In more detail: 
+
+1. `MatrixXi(n, n)` creates an $n \times n$ integer matrix with arbitrary contents
+
+
+2. `.setZero()`  zeros out the contents of the matrix.
+
+3.  `.selfAdjointView<Lower>()`  causes what follows to treat the matrix as a symmetric  matrix in which only the lower triangle is used, the strict upper triangle being inferred  by symmetry  
+
+4.  `.rankUpdate(A)`  forms the sum  $B  +  AA^\top$  where  $B$  is the symmetric matrix of zeros  created in the previous steps.  
+
+The assignment of this symmetric matrix to the (general)  `MatrixXi`  object  `AAt`  causes the  result to be symmetrized during the assignment.  
+
+For these products one could define the symmetric matrix from either the lower triangle or  the upper triangle as the result will be symmetrized before it is returned.  
+
+To cut down on repetition of  using  statements we gather them in a character variable,  __incl__,  that will be given as the __includes__  argument in the calls to  `cxxfunction`.  We also define a  utility function,  $AtA$, that returns the crossproduct matrix as shown in Figure 4.
+
+
+## Cholesky decomposition of the crossprod
+
+```{r eval=FALSE, engine='Rcpp'}
+#include <RcppEigen.h>
+
+using namespace Eigen;
+using namespace Rcpp;
+
+using Eigen::Lower;
+
+typedef MatrixXd MapMatd;
+
+// [[Rcpp::depends(RcppEigen)]]
+// [[Rcpp::export]]
+
+List cholCpp(const MapMatd & A) {
+  const MapMatd AtA = A;
+  const LLT<MatrixXd> llt(A);
+
+  return List::create(Named("L)")  = MatrixXd(llt.matrixL()),
+                      Named("R")   = MatrixXd(llt.matrixU()));
+}
+
+```
+
+
+
+
+```{r}
+# A <- matrix(1:4, ncol = 2)
+# (mm <- Matrix(toeplitz(c(10, 0, 1, 0, 3)), sparse = TRUE)) # 5 x 5
+( m <- matrix(c(14,32,7,7),2,2) )
+
+(ll <- cholCpp(m))
+```
+
+```{r}
+( cm <- chol(m) )
+```
+
+```{r}
+Cholesky(m)
+```
 
