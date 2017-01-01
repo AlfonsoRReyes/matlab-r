@@ -1,0 +1,31 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(ezknitr)
+
+ezknit(file = "matrix/01-linear-algebraic-systems.Rmd", 
+       out_dir = "output", 
+       fig_dir = "myfigs", keep_html = FALSE)
+
+ezknit(file = "matrix/02-matrix-algebra.Rmd", 
+       out_dir = "output", 
+       fig_dir = "myfigs", keep_html = FALSE)
+
+ezknit(file = "matrix/03-algebra-r.Rmd", 
+       out_dir = "output", 
+       fig_dir = "myfigs", keep_html = FALSE)
+
+ezknit(file = "matrix/04-eigen_values_vectors.Rmd", 
+       out_dir = "output", 
+       fig_dir = "myfigs", keep_html = FALSE)
+
+ezknit(file = "matrix/05-Matrix_library.Rmd", 
+       out_dir = "output", 
+       fig_dir = "myfigs", keep_html = FALSE)
+```
+
