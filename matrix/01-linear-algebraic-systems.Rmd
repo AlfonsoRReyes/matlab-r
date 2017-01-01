@@ -1,0 +1,78 @@
+---
+title: "01-linear-algebraic-systems"
+output: html_notebook
+---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
+## Concepts
+
+### Matrix notation of an equation
+
+$\begin{pmatrix}
+ A_{11} & A_{12}  & A_{13} \\
+ A_{21} & A_{22}  & A_{23} \\ 
+ A_{31} & A_{32}  & A_{33}
+\end{pmatrix}
+\begin{pmatrix}
+  x_{11} \\
+  x_{21}  \\ 
+  x_{31} 
+ \end{pmatrix}=
+\begin{pmatrix}
+  b_{11} \\
+  b_{21}  \\ 
+  b_{31} 
+\end{pmatrix}$
+ 
+or, in other words:
+
+  $\mathbf{A}x = b$
+
+### Upper Triangular matrix
+Contains zero elements on one side of the leading diagonal.
+
+$U = \begin{pmatrix}
+ U_{11} & U_{12} & U_{13} \\
+ 0      & U_{22} & U_{23} \\ 
+ 0      & 0      & U_{33}
+ \end{pmatrix}$
+
+### Lower Triangular matrix
+Contains zero elements on the other side of the leading diagonal.
+
+$L = \begin{pmatrix}
+ L_{11} & 0       & 0 \\
+ L_{21} & L_{22}  & 0 \\ 
+ L_{31} & L_{32} & L_{33}
+ \end{pmatrix}$
+
+## Solving equations
+
+### Gauss Elimination
+
+Initial form: $\mathbf{A}x = b$
+
+Final form: $\mathbf{U}x = c$
+
+### LU decomposition
+
+Initial form:  $\mathbf{A}x = b$
+
+Final form: $\mathbf{LU}x = b$
+
+### Gauss-Jordan elimination
+
+Initial form:  $\mathbf{A}x = b$
+
+Final form: $\mathbf{I}x = c$
+
+
+where:
+
+$\mathbf{U}$: upper triangular matrix \
+$\mathbf{L}$: lower triangular matrix \
+$\mathbf{I}$: identity matrix
+

@@ -1,0 +1,69 @@
+---
+title: "matrix algebra"
+output:
+  html_document: default
+  html_notebook: default
+---
+
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
+
+
+
+```{r}
+# enter data as rows
+A = matrix(c(4, 3, -4, 5), nrow=2, byrow = TRUE)
+A
+```
+```{r}
+B = matrix(c(1, 2, 3, 4), nrow=2, byrow = TRUE)
+B
+```
+
+
+```{r}
+3*A
+```
+
+```{r}
+C <- A*B
+```
+
+### Matrix multiplication
+```{r}
+Mul <- A %*% B
+Mul
+```
+
+```{r}
+out <- A %o% B
+out
+```
+
+### Transpose
+```{r}
+t(A)
+```
+
+### Diagonal
+
+```{r}
+A
+diag(A)
+```
+
+### Diagonal of a scalar
+
+```{r}
+diag(3)
+```
+
+### Vector `b`
+
+```{r}
+
+```
+

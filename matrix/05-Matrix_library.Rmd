@@ -1,0 +1,45 @@
+---
+title: "The Matrix library"
+output: html_notebook
+---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
+
+Source: http://blog.revolutionanalytics.com/2013/08/r-and-linear-algebra.html
+
+
+```{r}
+library(Matrix)
+set.seed(1)
+
+m <- 10
+n <- 5
+A <- matrix(runif(m*n), m, n)
+B <- crossprod(A)
+A;B
+
+```
+
+```{r}
+B.M <- Matrix(B)
+class(B.M)
+
+```
+
+Compute the Cholesky decomposition of B.M
+The Cholesky decomposition is now part of the B.M object
+
+```{r}
+chol(B.M)
+str(B.M)
+
+```
+
+Access the B.M object
+```{r}
+B.M@factors
+```
+
