@@ -2,8 +2,14 @@
 title: "Using 'Rcpp' to integrate R and C++"
 author: "Guilherme Ludwig"
 date: "10/09/2014"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
+
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
 
 ```{r knitr_options, echo=FALSE}
 library(knitr)
