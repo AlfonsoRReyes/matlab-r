@@ -1,13 +1,15 @@
 ---
 title: "RcppEigen Examples"
 output:
-  pdf_document: default
+  html_document: default
   html_notebook: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, error=TRUE, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
 ```
+
 
 ## Show the current Version
 
