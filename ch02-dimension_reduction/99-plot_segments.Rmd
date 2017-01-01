@@ -6,6 +6,10 @@ output:
   pdf_document: default
 ---
 
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
 ```{r}
 plotSegment <- function(P1, P2, ...) {
   segments(P1[1], P1[2], P2[1], P2[2], ...)
