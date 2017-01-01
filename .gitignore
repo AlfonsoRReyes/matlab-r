@@ -27,3 +27,4 @@ vignettes/*.pdf
 *.html
 *.png
 06-RcppEigen_package.pdf
+Rcpp.pdf
