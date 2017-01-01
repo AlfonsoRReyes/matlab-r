@@ -1,9 +1,15 @@
 ---
-title: "R Notebook"
-output: html_notebook
+title: "RcppEigen Examples"
+output:
+  pdf_document: default
+  html_notebook: default
 ---
 
-## Version
+```{r setup, include=FALSE, error=TRUE, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = NA, error = TRUE)
+```
+
+## Show the current Version
 
 ```{r}
 library(RcppEigen)
@@ -28,16 +34,16 @@ RcppSamp <- function(X) {
 ```
 
 
-## Max over columns
+# Max over columns
 source: http://stackoverflow.com/questions/27490659/rcppeigen-going-from-inline-to-a-cpp-function-in-a-package-and-map
 
 
 
 ## Using RcppEigen to find the max over columns
 
-### Long version
+#### Long version
 Assigns code to R variable `maxOverColCpp` Uses mixed C++.
-```{r}
+```{r message=FALSE}
 library(Rcpp); 
 library(inline); 
 library(RcppEigen);
@@ -54,21 +60,31 @@ maxOverColCpp <- '
    return wrap(Amax);
 '
 
+```
+
+Assign the inline C++ function:
+```{r}
 rcppeigen_max_over_columns <- cxxfunction(signature(AA = "matrix"), maxOverColCpp, plugin = "RcppEigen")
 
 ```
 
+Create a matrix for the example:
 ```{r}
 M <- matrix(c(1,2,3,4,5,6,7,8,9), ncol=3)
 M
 ```
+
+Run the inline C++ function:
 ```{r}
 rcppeigen_max_over_columns(M)
 ```
 
-### Max over columns: short version.
+
+## Max over columns: short version.
 Uses C++ code.
-```{r eval=FALSE, engine='Rcpp'}
+This can even be saved as a C++ file (.cpp). Add `engine='Rcpp'` if want to run it in a notebook chunk.
+
+```{r engine='Rcpp'}
 // we only include RcppEigen.h which pulls Rcpp.h in for us
 #include <RcppEigen.h>
 
@@ -85,13 +101,14 @@ MatrixXd  rcppeigen_max_over_columns3(const MatrixXd  & A) {
 }
 ```
 
+Run the C++ function:
 ```{r}
-require(RcppEigen)
+library(RcppEigen)
 
 rcppeigen_max_over_columns3(M)
 ```
 
-## Transpose
+# Transpose
 Uses R code assigned to variable `transCpp` and a call to `cxxfunction`.
 the transpose() method for the `Eigen::MatrixXi` class is used to return the transpose of the supplied matrix. The R matrix in the SEXP AA is first mapped to an Eigen::MatrixXi object, and then the matrix At is constructed from its transpose and returned to R.
 
@@ -114,14 +131,9 @@ transCpp <- '
 '
 ```
 
-The R snippet below compiles and links the C++ code segment. The actual work is done
-by the function `cxxfunction` from the inline package which compiles, links and loads code
-written in C++ and supplied as a character variable. This frees the user from having to
-know about compiler and linker details and options, which makes “exploratory programming”
-much easier. Here the program piece to be compiled is stored as a character variable named
-`transCpp`, and `cxxfunction` creates an executable function which is assigned to `ftrans`.
-This new function is used on the matrix $A$ shown above, and one can check that it works as
-intended by comparing the output to an explicit transpose of the matrix argument.
+The R snippet below compiles and links the C++ code segment. The actual work is done by the function `cxxfunction` from the inline package which compiles, links and loads code written in C++ and supplied as a character variable. This frees the user from having to know about compiler and linker details and options, which makes “exploratory programming” much easier. Here the program piece to be compiled is stored as a character variable named `transCpp`, and `cxxfunction` creates an executable function which is assigned to `ftrans`. 
+
+This new function is used on the matrix $A$ shown above, and one can check that it works as intended by comparing the output to an explicit transpose of the matrix argument.
 
 ```{r}
 ftrans <- cxxfunction(signature(AA = "matrix"), transCpp, plugin = "RcppEigen")
@@ -143,7 +155,7 @@ str(A)
 ## Transpose using a R chunk
 Converting the inline C++ function to a full C++ function
 
-```{r eval=FALSE, engine='Rcpp'}
+```{r engine='Rcpp'}
 #include <RcppEigen.h>
 
 using namespace Eigen;
@@ -181,7 +193,7 @@ transCpp(M)
 \]
 
 
-```{r eval=FALSE, engine='Rcpp'}
+```{r engine='Rcpp'}
 #include <RcppEigen.h>
 #include <Eigen/Dense>
 #include <Eigen/Cholesky>
@@ -215,14 +227,12 @@ xtSxx(X,S,Y)
 
 
 
-
-
 ## Matrix product and cross-product
 from the paper `Figure 2` example.
 
 As mentioned in Section 2.2, the '*' operator is overloaded as matrix multiplication for the various matrix and vector classes in $\textbf{Eigen}$.  The C++ code in Figure 2 produces a list containing both the product and cross-product (in the sense of the R function call `crossproduct(A, B)` evaluating $A \top B$) of its two arguments
 
-```{r eval=FALSE, engine='Rcpp'}
+```{r engine='Rcpp'}
 #include <RcppEigen.h>
 
 using namespace Eigen;
@@ -260,7 +270,7 @@ but `crossprod(X)` is roughly twice as fast because the result is known to be sy
 
 To express these calculations in Eigen, a SelfAdjointView -which is a dense matrix of which only one triangle is used,  the other triangle being inferred from the symmetry|is created. (The characterization "self-adjoint" is equivalent to symmetric for non-complex matrices).
 
-```{r eval=FALSE, engine='Rcpp'}
+```{r engine='Rcpp'}
 #include <RcppEigen.h>
 
 using namespace Eigen;
@@ -318,7 +328,8 @@ To cut down on repetition of  using  statements we gather them in a character va
 
 ## Cholesky decomposition of the crossprod
 
-```{r eval=FALSE, engine='Rcpp'}
+```{r engine='Rcpp'}
+
 #include <RcppEigen.h>
 
 using namespace Eigen;
@@ -357,6 +368,7 @@ List cholCpp(const MapMatd & A) {
 ```
 
 ```{r}
+library(Matrix)
 Cholesky(m)
 ```
 
