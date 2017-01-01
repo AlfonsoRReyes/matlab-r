@@ -12,11 +12,3 @@ myroot(16)
 
 
 
-```{r}
-library(Rcpp)
-
-myroot2 <- rcpp(signature(xs="numeric"), 
-                  body='double x=as<double>(xs); return wrap(::sqrt(x));')
-myroot2(16)
-```
-
