@@ -29,3 +29,5 @@ vignettes/*.pdf
 06-RcppEigen_package.pdf
 Rcpp.pdf
 Rcpp
+06-RcppEigen_package.md
+output
