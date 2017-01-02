@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Loading the Matlab software array:
+```{r message=FALSE}
+library(R.matlab)
+
+# read the Matlab array
+yeast.mat <- readMat("../data/yeast.mat", fixNames = TRUE)
+```
+
+
+Names of the Matlab objects:
+```{r}
+names(yeast.mat)
+```
+
+Get the `data` part of the Matlab array file:
+```{r}
+data <- yeast.mat$data
+```
+
+Get the dimensions and assign:
+```{r}
+n <- nrow(data)
+p <- ncol(data)
+```
+
+
+## center the data
+
+```{r}
+colSums(data) / n
+```
+
+```{r}
+source("../matlab.R")
+```
+
+
+```{r}
+r <- repmat(colSums(data)/n, n, 1)
+```
+
+
+```{r}
+repmat2 = function(X, m, n) {
+##R equivalent of repmat (matlab)
+mx = dim(X)[1]
+nx = dim(X)[2]
+matrix(t(matrix(X,mx,nx*n)),mx*m,nx*n,byrow=T)
+}
+```
+
+```{r}
+r <- repmat(A, 2, 3)
+```
+
