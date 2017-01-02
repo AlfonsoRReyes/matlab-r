@@ -34,3 +34,8 @@ projectionMatrixLine <- function(M, ...) {
   # draw the projection line given the projection matrix of angle theta
   segmentInf(M[,1], M[,2], ...)
 }
+
+
+repmat <- function(a, n, m) {
+  kronecker(matrix(1, n, m), a)
+}
