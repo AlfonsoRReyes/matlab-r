@@ -37,7 +37,7 @@ The variables are normalized by the size of the inspection (the number of pages 
  
 ```{r}
 prepsloc <- software.mat$prepsloc
-defsloc <- software.mat$defsloc
+defsloc  <- software.mat$defsloc
 ```
 
 
