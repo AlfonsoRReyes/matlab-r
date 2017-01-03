@@ -13,9 +13,18 @@ mlab_eig <- function(M) {
   return(list(V = VV, D = D))
 }
 
+m.eig <- function(M) {
+  eig <- eigen(M)
+  # evalues <- matrix(eig$values, ncol = 1)
+  evalues <- diag(rev(eig$values))
+  evectors <- eig$vectors
+  evectors <- - evectors[, dim(evectors)[1]:1] # count down
+    
+  return(list(values = evalues, vectors = evectors))
+}
 
 "%^%" <- function(x, n)
-  # create a special operator for raising matrix to a power
+  # create a special operator for raising matrix to a `n` power
   with(eigen(x), 
        vectors %*% 
          (values^n * t(vectors))
@@ -36,6 +45,28 @@ projectionMatrixLine <- function(M, ...) {
 }
 
 
-repmat <- function(a, n, m) {
+m.repmat <- function(a, n, m) {
+  # replicates the repmat function in Octave
   kronecker(matrix(1, n, m), a)
+}
+
+m.size <- function(A) {
+  # replicates the Matlab size function
+  dim(A)
+}
+
+m.flipud <- function(M) {
+  # replicate flipud
+  apply(M, 2, rev)
+}
+
+m.zeros <-function(m,n) {
+  # replicate the Matlab zeros function
+  matrix(0,nrow=m,ncol=n)
+}
+
+
+m.svd <- function(M) {
+  svd_ <- svd(M)
+  list(d = diag(svd_$d), u = svd_$u, v = svd_$v)
 }
