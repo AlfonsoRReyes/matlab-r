@@ -21,13 +21,10 @@ vignettes/*.pdf
 /cache/
 # Temporary files created by R markdown
 *.utf8.md
-*.knit.md
 .Rproj.user
 *.nb.html
 *.html
 *.png
-06-RcppEigen_package.pdf
-Rcpp.pdf
+*.pdf
 Rcpp
-06-RcppEigen_package.md
 output
