@@ -14,12 +14,15 @@ mlab_eig <- function(M) {
 }
 
 m.eig <- function(M) {
+  # replicate the Matlab eig() function
+  # Returns: 
+  #       the diagonal of eigen$values
+  #       the negative of eigen$vectors in descending order
   eig <- eigen(M)
   # evalues <- matrix(eig$values, ncol = 1)
   evalues <- diag(rev(eig$values))
   evectors <- eig$vectors
   evectors <- - evectors[, dim(evectors)[1]:1] # count down
-    
   return(list(values = evalues, vectors = evectors))
 }
 
@@ -45,9 +48,10 @@ projectionMatrixLine <- function(M, ...) {
 }
 
 
-m.repmat <- function(a, n, m) {
+m.repmat <- function(M, n, m) {
   # replicates the repmat function in Octave
-  kronecker(matrix(1, n, m), a)
+  # M should be a matrix
+  kronecker(matrix(1, n, m), M)
 }
 
 m.size <- function(A) {
@@ -67,6 +71,8 @@ m.zeros <-function(m,n) {
 
 
 m.svd <- function(M) {
+  # replicate Matlab function svd including the diag(d) which is not
+  # included in R svd()
   svd_ <- svd(M)
   list(d = diag(svd_$d), u = svd_$u, v = svd_$v)
 }
