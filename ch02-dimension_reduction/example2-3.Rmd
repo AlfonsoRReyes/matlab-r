@@ -1,8 +1,9 @@
 ---
-title: "Example 2.3"
-output: html_notebook
+title: "Example 2.3 - SVD"
+output:
+  pdf_document: default
+  html_notebook: default
 ---
-
 
 
 This illustrative example of SVD applied to information retrieval (IR) is taken
