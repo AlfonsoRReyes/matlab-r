@@ -13,20 +13,22 @@ datac = data - repmat(sum(data) /n, n, 1);
 covm = cov(datac);
 
 [eigvec,eigval] = eig(covm);
-eigval = diag(eigval); % Extract the diagonal elements
+
+eigvald = diag(eigval); % Extract the diagonal elements
+
 % Order in descending order
-eigval = flipud(eigval);
+eigval = flipud(eigvald);
 eigvec = eigvec(:,p:-1:1);
 
 
 % Do a scree plot.
-figure, plot(1:length(eigval),eigval,'ko-')
+figure, plot(1:length(eigvald),eigvald,'ko-')
 title('Scree Plot')
 xlabel('Eigenvalue Index - k')
 ylabel('Eigenvalue')
 
 % Now for the percentage of variance explained.
-pervar = 100*cumsum(eigval)/sum(eigval);
+pervar = 100*cumsum(eigvald)/sum(eigvald);
 
 % First get the expected sizes of the eigenvalues.
 g = zeros(1,p);
@@ -38,13 +40,13 @@ end
 g = g/p;
 
 % next step is to find the proportion of the variance explained.
-propvar = eigval/sum(eigval);
+propvar = eigvald/sum(eigvald);
 
 
 % Now for the size of the variance.
-avgeig = mean(eigval);
+avgeig = mean(eigvald);
 % Find the length of ind:
-ind = find(eigval > avgeig);
+ind = find(eigvald > avgeig);
 length(ind)
 
 % So, using 3, we will reduce the dimensionality.
