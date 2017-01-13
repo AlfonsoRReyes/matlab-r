@@ -246,3 +246,8 @@ emat$vectors %*%
 
 ```
 
+Saving X variable for other use.
+```{r}
+save(X, file = "X.mvnrnd.RData")
+```
+

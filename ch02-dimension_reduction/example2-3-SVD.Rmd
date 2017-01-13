@@ -77,7 +77,10 @@ names(lsiex.mat)
 ```{r}
 termdoc <- lsiex.mat$termdoc
 X <- lsiex.mat$X
+```
 
+
+```{r}
 # Loads up variables: X, termdoc, docs and words.
 # Convert the matrix to one that has columns 
 # with a magnitude of 1.
@@ -147,6 +150,7 @@ rank approximations via the SVD. The idea being that some of the dimensions repr
 using the function __svd__.
 
 > Let's use svd() from R:
+
 ```{r}
 svd(termdoc)
 ```

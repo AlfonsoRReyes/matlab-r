@@ -1,0 +1,46 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+
+```
+
+```{r fig.asp=1}
+n <- 500
+theta <- runif(n =  n, min = 0, max = 4*pi)
+
+
+# Use in the equations for a helix￿
+x <- cos(theta)
+y <- sin(theta)
+z <- 0.1 * (theta)
+
+# Put into a data matrix
+# X = [x(,),y(,),z(,)]
+X <- matrix(c(x, y, z), 500, 3)
+
+library("plot3D")
+
+scatter3D(x, y, z,
+          col = "blue",
+          pch = 19,
+          cex = 0.5,
+          bty = "b2",
+          xlab = "x",
+          ylab = "y",
+          zlab = "z",
+          theta = -45,       # 3D viewing direction: azimuth
+          phi = 30,           # co-latitude
+          ticktype = "detailed"
+          )
+```
+
+
+
+```{r}
+ydist <- dist(X)
+```
+

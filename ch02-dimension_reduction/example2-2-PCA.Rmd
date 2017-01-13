@@ -1,10 +1,10 @@
 ---
 title: "Example 2.2"
 output:
-  pdf_document: 
-    latex_engine: xelatex
-  html_notebook: default
   html_document: default
+  html_notebook: default
+  pdf_document:
+    latex_engine: xelatex
 ---
 
 ```{r setup, include=FALSE, error=TRUE, message=FALSE}
@@ -129,6 +129,8 @@ eigvald <- matrix(diag(eigval))  # Extract the diagonal elements
 eigvale <- m.flipud(eigvald)
 eigvece <- eigvec[, p:1]
 
+eigvald
+eigvale
 ```
 
 ### The Scree Plot
