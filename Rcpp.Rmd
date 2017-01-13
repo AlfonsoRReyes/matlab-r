@@ -3,8 +3,8 @@ title: "Using 'Rcpp' to integrate R and C++"
 author: "Guilherme Ludwig"
 date: "10/09/2014"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE, error=TRUE, message=FALSE}
@@ -126,7 +126,7 @@ Open my [fibBest.cpp](fibBest.cpp) version; it doesn't have an wrapper anymore, 
 
 ```{r}
 library(Rcpp)
-sourceCpp("fibBest.cpp")
+sourceCpp("src/fibBest.cpp")
 ```
 
 and that makes the function `fibCpp()` available in R!
@@ -178,7 +178,7 @@ Note also that I'm not calculating values at the tails of the density or anythin
 
 ```{r}
 library(Rcpp)
-sourceCpp("dnormCpp.cpp")
+sourceCpp("src/dnormCpp.cpp")
 
 all.equal(dnorm(1:10, 5, 1), dnormCpp(1:10, 5,1))
 
@@ -240,7 +240,7 @@ A test case to show the results are the same:
 ```{r}
 require(RcppEigen)
 
-sourceCpp("xtSx.cpp")
+sourceCpp("src/xtSx.cpp")
 S <- matrix(c(1,.5,.5,1),ncol=2)
 Y <- c(3,2)
 X <- matrix(c(1,0,1,1), ncol=2)
@@ -304,7 +304,7 @@ all.equal(as.numeric(xtSx(X,S,Y)),
 At $p=10, n=500$, the improvement in speed is about `r round(max(timeR)/max(timeCpp))`-fold! It can be made faster, though. I am going to try modify my example inspired in the $\mathbf{X}^\prime \mathbf{X}$ example from Bates and Eddelbuettel's "Fast and Elegant Numerical Linear Algebra Using the RcppEigen Package" (<i>Journal of Statistical Software</i>, 2013) and on some suggestions that [Jared](https://github.com/jaredhuling) shared with me. Code is [here](xtSxMod.cpp).
 
 ```{r}
-sourceCpp("xtSxMod.cpp")
+sourceCpp("src/xtSxMod.cpp")
 
 timeCppFast <- numeric(length(n))
 k <- 0

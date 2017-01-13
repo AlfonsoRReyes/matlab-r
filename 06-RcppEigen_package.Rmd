@@ -189,6 +189,9 @@ transCpp(M)
 
 
 
+
+
+
 ## XtSx
 \[
 \hat{\boldsymbol\beta} = \left( \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{X} \right)^{-1} \mathbf{X}^\prime \boldsymbol\Sigma^{-1} \mathbf{y}

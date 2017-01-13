@@ -5,5 +5,5 @@ output: html_notebook
 
 ```{r}
 library(Rcpp)               ## recent version for sourceCpp()
-sourceCpp("eigenEx.cpp")    ## converts source file into getEigen() we can call
+sourceCpp("src/eigenEx.cpp")    ## converts source file into getEigen() we can call
 ```
